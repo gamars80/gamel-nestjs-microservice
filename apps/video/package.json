@@ -20,8 +20,7 @@
     "test:e2e": "jest --config ./apps/microservice/test/jest-e2e.json",
     "microservice": "shx cp ./package.json ./apps/gamel-api-gateway && shx cp ./package.json ./apps/user && shx cp ./package.json ./apps/video && shx cp ./package.json ./apps/analytics && docker-compose -p microservice down && docker-compose -p microservice up --remove-orphans",
     "postgres": "docker-compose -f postgres.yml -p postgres down && docker-compose -f postgres.yml -p postgres up --remove-orphans",
-    "kafka": "docker-compose -f kafka-2.8.1.yml -p kafka down && docker-compose -f kafka-2.8.1.yml -p kafka up --remove-orphans",
-    "proto:gen": "grpc_tools_node_protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts.cmd --js_out=import_style=commonjs,binary:./apps/user/src/generated --ts_out=./apps/user/src/generated -I ./apps/user/protos ./apps/user/protos/*.proto"
+    "kafka": "docker-compose -f kafka-2.8.1.yml -p kafka down && docker-compose -f kafka-2.8.1.yml -p kafka up --remove-orphans"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.13.0",

@@ -17,6 +17,7 @@ services:
     volumes:
       - /tmp/history/npm-cache:/root/.npm:z
       - ./apps/gamel-api-gateway/src:/usr/src/app/src:z
+      - ./apps/gamel-api-gateway/libs:/usr/src/libs
     ports:
       - "3000:3000"
     environment:
@@ -34,6 +35,7 @@ services:
     volumes:
       - /tmp/history/npm-cache:/root/.npm:z
       - ./apps/user/src:/usr/src/app/src:z
+      - ./apps/user/libs:/usr/src/libs
     environment:
       - PORT=3001
       - STAGE=local

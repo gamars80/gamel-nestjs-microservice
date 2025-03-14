@@ -20,6 +20,8 @@ export class VideoController {
     extension: string;
     buffer: { type: 'buffer'; data: number[] };
   }): Promise<{ id: string }> {
+
+    
     const video = await this.videoService.upload(
       userId,
       title,

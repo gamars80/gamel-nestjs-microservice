@@ -1,19 +1,31 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { RefreshToken } from './entity/refresh-token.entity';
+import { UserServiceGrpc } from './user.service.grpc';
+import { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
+  private userServiceGrpc: UserServiceGrpc;
+  
   constructor(
     private dataSource: DataSource,
     private userService: UserService,
     private jwtService: JwtService,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
+    @Inject('USER_PACKAGE') private readonly userClient: ClientGrpc,
   ) {}
+
+  onModuleInit() {
+    // gRPC client로부터 UserService 인터페이스를 가져옵니다.
+    // this.userServiceGrpc = this.userClient.getService<UserServiceGrpc>('UserService');
+    this.userServiceGrpc = this.userClient.getService<UserServiceGrpc>('UserService');
+  }
 
   async signup(email: string, password: string) {
     const queryRunner = this.dataSource.createQueryRunner();
@@ -21,18 +33,36 @@ export class AuthService {
     await queryRunner.startTransaction();
     let error;
     try {
-      const userId = await this.userService.findOneByEmail(email);
-      if (userId) throw new BadRequestException();
-      const newUserId = await this.userService.create(email, password);
-      const accessToken = this.genereateAccessToken(newUserId);
+  
+      // const userId = await this.userService.findOneByEmail(email);
+      const userId = await firstValueFrom(
+        this.userServiceGrpc.findOneByEmail({ email }, {})
+      );
+      
+      // 이미 존재하는 사용자가 있다면 에러 발생
+      if (userId && userId.id) {
+        throw new BadRequestException('이미 가입된 이메일입니다.');
+      }
+
+      console.log('dddddddddddddddddd');
+      // const newUserId = await this.userService.create(email, password);
+      // const newUser = await this.userServiceGrpc.create({ email, password }, {})
+      const newUser = await firstValueFrom(
+        this.userServiceGrpc.createUser({ email, password }, {})
+      );
+      console.log('eeeeeeeeeeeeeeeee');
+      console.log('eeeeeeeeeeeeeeeee');
+      const accessToken = this.genereateAccessToken(newUser.id);
       const refreshTokenEntity = queryRunner.manager.create(RefreshToken, {
-        userId: newUserId,
-        token: this.genereateRefreshToken(newUserId),
+        userId: newUser.id,
+        token: this.genereateRefreshToken(newUser.id),
       });
+
+      
       queryRunner.manager.save(refreshTokenEntity);
       await queryRunner.commitTransaction();
       return {
-        id: newUserId,
+        id: newUser.id,
         accessToken,
         refreshToken: refreshTokenEntity.token,
       };

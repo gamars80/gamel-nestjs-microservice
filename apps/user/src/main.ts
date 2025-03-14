@@ -18,13 +18,16 @@ async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
     transport: Transport.GRPC,
     options: {
-      package: 'user', // proto 파일의 package와 일치해야 합니다.
-      protoPath: join(__dirname, '../protos/user.proto'),
-      url: '0.0.0.0:50051', // gRPC 서버가 바인딩할 주소
+      // proto 파일에 정의된 패키지명과 일치해야 합니다.
+      package: 'user',
+      // proto 파일의 실제 경로 (모노레포 구조에 맞게 조정)
+      protoPath: join(__dirname, '../../libs/protos/user.proto'),
+      // 컨테이너 내부에서 모든 인터페이스에 바인딩할 주소
+      url: '0.0.0.0:50051',
     },
   });
   await app.listen();
-  console.info(`user-service listening on 3001 for TCP`);
+  console.info(`user-service listening on 3001 for gRpc`);
 }
 
 bootstrap();

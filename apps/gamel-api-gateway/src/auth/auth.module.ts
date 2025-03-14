@@ -10,6 +10,8 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from './entity/refresh-token.entity';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -26,6 +28,19 @@ import { RefreshToken } from './entity/refresh-token.entity';
       },
     }),
     TypeOrmModule.forFeature([RefreshToken]),
+    ClientsModule.register([
+      {
+        // gRPC 클라이언트로서 User 마이크로서비스를 호출합니다.
+        name: 'USER_PACKAGE',
+        transport: Transport.GRPC,
+        options: {
+          // Docker Compose 내에서는 서비스 이름(user-service)을 사용합니다.
+          url: 'user-service:50051',
+          package: 'user', // proto 파일에 정의된 패키지명과 일치해야 합니다.
+          protoPath: join(__dirname, '../../../libs/protos/user.proto'),
+        },
+      },
+    ]),
   ],
   providers: [
     AuthService,

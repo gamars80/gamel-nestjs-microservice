@@ -11,17 +11,21 @@ export class UserService {
   ) {}
 
   async findOneByEmail(email: string) {
+    console.log('zzzzzzzzzzzzzzzzzzzzzz');
     const user = await this.userRepository.findOneBy({ email });
     return user;
   }
 
   async create(email: string, password: string) {
+    console.log('11111111111111111111');
+    console.log('11111111111111111111');
     const saltRounds = 10;
     const hash = await bcrypt.hash(password, saltRounds);
     const userEntity = this.userRepository.create({
       email,
       password: hash,
     });
+    console.log('222222222222222222');
     const user = await this.userRepository.save(userEntity);
     return user;
   }
